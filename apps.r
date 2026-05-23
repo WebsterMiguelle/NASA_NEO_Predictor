@@ -6,17 +6,22 @@ library(tidyverse)
 library(randomForest)
 library(plotly) 
 library(bsicons) 
+library(shinythemes)
+
 addResourcePath(prefix = "img", directoryPath = "www")
 
 rf_model <- readRDS("asteroid_rf_model.rds")
 clean_data <- readRDS("clean_asteroids.rds")
 
 ui <- page_navbar(
-  title = "NASA NEO Threat Assessment",
+  title = "☄️NASA NEO Threat Assessment",
   fillable = FALSE,
   
-  theme = bs_theme(), 
-  
+theme = bs_theme(
+    bootswatch = "cerulean",
+    "navbar-bg" = "#0a3c91",   
+    "navbar-light-color" = "#ffffff"  
+  ),
  
   nav_spacer(),
   nav_item(input_dark_mode(id = "dark_mode")),
@@ -42,7 +47,7 @@ ui <- page_navbar(
                 title = "Avg. Max Diameter",
                 value = textOutput("box_avg_size"),
                 showcase = bsicons::bs_icon("arrows-angle-expand"),
-                theme = "info" 
+                theme = "orange" 
               )
             ),
 
@@ -50,22 +55,26 @@ ui <- page_navbar(
               width = 1/2, 
               
               card(
-                card_header(tagList("Orbit Class Distribution ", tooltip(bsicons::bs_icon("info-circle"), "Shows the classification of asteroid orbits. Notice which classes, like Apollos (APO), historically contain the most hazardous objects due to their Earth-crossing paths."))), 
+                card_header(style = "background-color: #F96E5B; color: white;", class = "fw-bold",
+                tagList("Orbit Class Distribution ", tooltip(bsicons::bs_icon("info-circle"), "Shows the classification of asteroid orbits. Notice which classes, like Apollos (APO), historically contain the most hazardous objects due to their Earth-crossing paths."))), 
                 plotlyOutput("eda_bar_chart")
               ),
               
               card(
-                card_header(tagList("Threat Matrix: Size vs. Proximity ", tooltip(bsicons::bs_icon("info-circle"), "Plots asteroid size against miss distance. Objects in the top-left (closest to Earth and largest in diameter) represent the greatest theoretical threat."))), 
+                card_header(style = "background-color: #F96E5B; color: white;", class = "fw-bold",
+                  tagList("Threat Matrix: Size vs. Proximity ", tooltip(bsicons::bs_icon("info-circle"), "Plots asteroid size against miss distance. Objects in the top-left (closest to Earth and largest in diameter) represent the greatest theoretical threat."))), 
                 plotlyOutput("eda_scatter_chart")
               ),
               
               card(
-                card_header(tagList("Velocity Distribution ", tooltip(bsicons::bs_icon("info-circle"), "Compares the speed (Mean Motion) of safe vs. hazardous asteroids. Faster objects are harder to deflect and carry more kinetic energy upon impact."))), 
+                card_header(style = "background-color: #F96E5B; color: white;", class = "fw-bold",
+                tagList("Velocity Distribution ", tooltip(bsicons::bs_icon("info-circle"), "Compares the speed (Mean Motion) of safe vs. hazardous asteroids. Faster objects are harder to deflect and carry more kinetic energy upon impact."))), 
                 plotlyOutput("eda_histogram")
               ),
               
               card(
-                card_header(tagList("Magnitude (Brightness) Analysis ", tooltip(bsicons::bs_icon("info-circle"), "In astronomy, a lower magnitude means a brighter object, which usually indicates a larger physical size. Notice how confirmed hazards skew towards lower (brighter) magnitudes."))), 
+                card_header(style = "background-color: #F96E5B; color: white;", class = "fw-bold",
+                  tagList("Magnitude (Brightness) Analysis ", tooltip(bsicons::bs_icon("info-circle"), "In astronomy, a lower magnitude means a brighter object, which usually indicates a larger physical size. Notice how confirmed hazards skew towards lower (brighter) magnitudes."))), 
                 plotlyOutput("eda_boxplot")
               )
             )
@@ -322,7 +331,8 @@ server <- function(input, output, session) {
   
   output$eda_bar_chart <- renderPlotly({
     plot_ly(clean_data, x = ~orbit_class_type, color = ~potentially_hazardous, 
-            colors = c("#00e676", "#ff4d4d"), type = "histogram",
+            colors = c("#74b9ff", "#e17055"), type = "histogram",
+            name = ~ifelse(potentially_hazardous == "TRUE", "Unsafe", "Safe"),
             hovertemplate = "<b>Orbit Class:</b> %{x}<br><b>Count:</b> %{y}<extra></extra>") |>
       layout(barmode = "stack",
              paper_bgcolor = 'rgba(0,0,0,0)', plot_bgcolor = 'rgba(0,0,0,0)', 
@@ -333,7 +343,8 @@ server <- function(input, output, session) {
   
   output$eda_scatter_chart <- renderPlotly({
     plot_ly(clean_data, x = ~min_orbit_intersection, y = ~diameter_max_m, 
-            color = ~potentially_hazardous, colors = c("#00e676", "#ff4d4d"),
+            color = ~potentially_hazardous, colors = c("#74b9ff", "#e17055"),
+            name = ~ifelse(potentially_hazardous == "TRUE", "Unsafe", "Safe"),
             type = "scatter", mode = "markers", marker = list(opacity = 0.6),
             hoverinfo = "text",
             text = ~paste("<b>Hazard Status:</b>", potentially_hazardous,
@@ -348,7 +359,8 @@ server <- function(input, output, session) {
 
   output$eda_histogram <- renderPlotly({
     plot_ly(clean_data, x = ~mean_motion, color = ~potentially_hazardous, 
-            colors = c("#00e676", "#ff4d4d"), type = "histogram", opacity = 0.7,
+            colors = c("#74b9ff", "#e17055"), type = "histogram", opacity = 0.7,
+            name = ~ifelse(potentially_hazardous == "TRUE", "Unsafe", "Safe"),
             hovertemplate = "<b>Speed:</b> %{x} deg/day<br><b>Count:</b> %{y}<extra></extra>") |>
       layout(barmode = "overlay", 
              paper_bgcolor = 'rgba(0,0,0,0)', plot_bgcolor = 'rgba(0,0,0,0)', 
@@ -358,11 +370,14 @@ server <- function(input, output, session) {
   })
 
   output$eda_boxplot <- renderPlotly({
-    plot_ly(clean_data, x = ~potentially_hazardous, y = ~magnitude, 
-            color = ~potentially_hazardous, colors = c("#00e676", "#ff4d4d"), type = "box") |>
+    plot_ly(clean_data, x = ~potentially_hazardous, y = ~magnitude, color = ~potentially_hazardous,
+            colors = c("#74b9ff", "#e17055"),
+            type = "box") |>
       layout(paper_bgcolor = 'rgba(0,0,0,0)', plot_bgcolor = 'rgba(0,0,0,0)', 
              font = list(color = t_colors()$text),
-             xaxis = list(title = "Hazard Status", gridcolor = t_colors()$grid),
+             xaxis = list(title = "Hazard Status", gridcolor = t_colors()$grid,
+             tickvals = c("FALSE", "TRUE"),
+             ticktext = c("Safe", "Unsafe")),
              yaxis = list(title = "Absolute Magnitude (Brightness)", gridcolor = t_colors()$grid),
              showlegend = FALSE)
   })
