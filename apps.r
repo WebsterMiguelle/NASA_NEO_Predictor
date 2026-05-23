@@ -7,6 +7,7 @@ library(tidyverse)
 library(randomForest)
 library(plotly) 
 library(bsicons) 
+addResourcePath(prefix = "img", directoryPath = "www")
 
 # Load Apraxia's Backend Files
 rf_model <- readRDS("asteroid_rf_model.rds")
@@ -17,7 +18,7 @@ clean_data <- readRDS("clean_asteroids.rds")
 # ==========================================
 ui <- page_navbar(
   title = "NASA NEO Threat Assessment",
-  
+  fillable = FALSE,
   # Allow the light/dark toggle to work
   theme = bs_theme(), 
   
@@ -51,7 +52,7 @@ ui <- page_navbar(
               )
             ),
             
-            # The Bottom Grid: 4 Global Analytics Charts (With Info Tooltips!)
+            # The Bottom Grid: 4 Global Analytics Charts 
             layout_column_wrap(
               width = 1/2, 
               
@@ -77,11 +78,11 @@ ui <- page_navbar(
             )
   ),
   
-  # --- TAB 2: The Hazard Scanner (Machine Learning) ---
-  nav_panel("Hazard Scanner",
+  # --- TAB 2: The Hazard Predictor ---
+  nav_panel("Hazard Predictor",
             layout_sidebar(
               
-              # THE SIDEBAR (Now with Tooltips!)
+              # THE SIDEBAR 
               sidebar = sidebar(
                 title = "Asteroid Parameters",
                 
@@ -126,7 +127,6 @@ ui <- page_navbar(
                 ),
                 
                 hr(), 
-                # THE BUTTON UPGRADE: Added bold text, full width, and a shadow!
                 actionButton("scan_btn", "SCAN FOR THREAT", class = "btn btn-danger btn-lg w-100 fw-bold shadow")
               ),
               
@@ -143,17 +143,178 @@ ui <- page_navbar(
   ),
   
   # --- TAB 3: Explanatory Tab ---
-  nav_panel("Mission Briefing", 
+  # --- TAB 3: Explanatory Tab ---
+  nav_panel("About This", 
+            
+            # 1. TOP SECTION: About the Project & Database Links (First thing they see)
             card(
-              h3("About This Dashboard"),
-              p("Claiyax will paste the research and data dictionary here.")
-            )
-  ),
-  
-  # --- TAB 4: Data Source ---
-  nav_panel("Database Link",
-            card(
-              p("Data sourced from NASA's Near-Earth Object Web Service via Kaggle.")
+              class = "shadow-sm mb-4 border-0",
+              card_header("About This Project", class = "bg-primary text-white fw-bold fs-5"),
+              card_body(
+                p(class = "lead", "INFORMATION GOES HERE ARN"),
+                
+                # The Single Link Button
+                div(
+                  tags$a(href = "https://www.kaggle.com/datasets/itszubi/nasa-asteroid-tracker-dataset?resource=download", target = "_blank", class = "btn btn-primary fw-bold", 
+                         bsicons::bs_icon("database"), " View Dataset")
+                )
+              )
+            ),
+            # 2. MIDDLE SECTION: Split Screen for Model Stats & Dictionary
+            layout_columns(
+              col_widths = c(4, 8), 
+              
+              # LEFT COLUMN: Model Briefing
+              layout_column_wrap(
+                width = 1,
+                
+                # --- MODEL PERFORMANCE KPI CARD ---
+                # --- MODEL PERFORMANCE KPI CARD (CSS-Free) ---
+                card(
+                  class = "border-0 border-start border-danger border-5 shadow-sm",
+                  card_header("Model Performance", class = "h4 fw-bold border-0 bg-transparent"),
+                  card_body(
+                    layout_column_wrap(
+                      width = 1/3,
+                      div(class = "text-center", h6("Accuracy", class = "text-muted fw-bold"), h3("99.5%", class = "fw-bold")),
+                      div(class = "text-center", h6("F1 Score", class = "text-muted fw-bold"), h3("99.7%", class = "fw-bold")),
+                      div(class = "text-center", h6("Kappa", class = "text-muted fw-bold"), h3("0.98", class = "fw-bold"))
+                    ),
+                    
+                    br(), 
+                    
+                    layout_column_wrap(
+                      width = 1/2,
+                      div(class = "text-center", h6("Sensitivity (Recall)", class = "text-muted fw-bold"), h3("99.3%", class = "fw-bold")),
+                      div(class = "text-center", h6("Specificity", class = "text-muted fw-bold"), h3("100%", class = "fw-bold"))
+                    ),
+                    
+                    hr(), 
+                    
+                    div(
+                      class = "small text-muted",
+                      strong("Metrics explanation:", class = "text-body"), br(),
+                      strong("Accuracy:", class = "text-body"), " Overall correctness of predictions", br(),
+                      strong("F1 Score:", class = "text-body"), " Harmonic mean of precision and recall", br(),
+                      strong("Kappa:", class = "text-body"), " Accuracy normalized at the baseline of random chance", br(),
+                      strong("Sensitivity:", class = "text-body"), " True positive rate", br(),
+                      strong("Specificity:", class = "text-body"), " True negative rate", br(),
+                      br(),
+                      "Based on 5-fold cross-validation of the training data"
+                    )
+                  )
+                ),
+                
+                card(
+                  card_header("The Threat Engine (Random Forest)", class = "bg-danger text-white"),
+                  markdown("
+Our backend is powered by a **Random Forest Classification** algorithm. 
+
+During training, the model autonomously learned the core physics of orbital mechanics. It determined that **Minimum Orbit Intersection (Proximity)** is the ultimate gatekeeper. If an asteroid's orbit does not physically cross Earth's path, the hazard probability drops to zero, regardless of size or speed. 
+
+Secondary features like **Maximum Diameter** and **Mean Motion** act as critical tie-breakers to calculate the exact Threat Probability of objects that *do* enter our orbital neighborhood.
+                  ")
+                )
+              ),
+              
+              # RIGHT COLUMN: Claiyax's Data Dictionary
+              card(
+                card_header("Data Dictionary", class = "bg-info text-white"),
+                class = "overflow-auto h-100", 
+                markdown("
+**IDENTIFIERS & TRAITS**
+* **designation**: A unique serial number to identify the specific asteroid.
+* **orbit_id**: Orbit solution identifier; in most cases, the JPL solution number.
+* **magnitude**: A measure of how bright a celestial object is. The lower the magnitude, the brighter the object.
+* **diameter_min_m**: The estimated minimum diameter in meters.
+* **diameter_max_m**: The estimated maximum diameter in meters.
+
+**ORBITAL GEOMETRY & MOVEMENT**
+* **orbit_class_type**: Abbreviated orbit classification type.
+    * *APO (Apollos)*: Cross Earth's path at their closest point to the Sun. They spend most of their time farther out but intersect Earth's path periodically.
+    * *AMO (Amors)*: Orbits strictly outside Earth's but inside Mars's. They approach Earth's neighborhood but do not cross our orbit.
+    * *ATE (Atens)*: Overall orbit is smaller than Earth's, but they cross Earth's orbit at their farthest point from the Sun.
+* **eccentricity**: Measures how much an asteroid's orbit deviates from a perfect circle.
+* **inclination**: The tilt of the asteroid’s orbit relative to the reference plane.
+* **semi_major_axis**: Average distance from the asteroid to the Sun.
+* **perihelion_distance**: A celestial body’s closest orbital distance from the sun.
+* **aphelion_distance**: A celestial body’s farthest orbital distance from the sun.
+* **perihelion_argument**: The angular distance between the orbit's ascending node and its perihelion.
+* **ascending_node_longitude**: The angle from the reference direction to the direction of the ascending node.
+* **mean_anomaly**: Position of the asteroid in its orbit at a specific time.
+* **mean_motion**: The angular speed required to complete one orbit.
+* **orbital_period**: The time an astronomical object takes to revolve around the sun.
+
+**OBSERVATION & PROXIMITY**
+* **min_orbit_intersection**: The distance between the closest points of the asteroid and Earth.
+* **jupiter_tisserand**: A mathematical value relative to Jupiter used to classify orbits.
+* **epoch**: A moment in time used as a reference point for some time-varying quantity.
+* **data_arc_days**: The period of time elapsed between the first and most recent observations.
+* **observation_used**: How many times the asteroid was observed.
+* **orbit_uncertainty**: The quantification of doubt regarding an object's exact location and trajectory.
+                ")
+              )
+            ),
+            
+            # 3. BOTTOM SECTION
+            hr(class = "mt-5 mb-4 border-secondary"),
+            
+            div(class = "text-center mb-4",
+                h3("Project Makers", class = "fw-bold"),
+            ),
+            
+            layout_column_wrap(
+              width = 1/3,
+              
+              card(
+                class = "text-center shadow-sm p-0 border-0",
+                
+                div(class = "text-white p-4", style = "background-color: #800020;",
+                    h5("Arndria Basco", class = "fw-bold mb-0"),
+                    div("BSCS Student")
+                ),
+                
+                card_body(
+                  div(class = "mb-3 mt-2",tags$img(src = "img/arn_photo.png", style = "width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #800020;")),
+                  div("College of Information and Computing", class = "fw-bold"),
+                  div("BS Computer Science Major in Data Science"),
+                  div("University of Southeastern Philippines, Obrero Campus", class = "small text-muted mt-2")
+                )
+              ),
+
+              card(
+                class = "text-center shadow-sm p-0 border-0", 
+                
+                div(class = "text-white p-4", style = "background-color: #5D3FD3;",
+                    h5("Webster Miguelle D. Isidor", class = "fw-bold mb-0"),
+                    div("BSCS Student")
+                ),
+                
+                card_body(
+                  div(class = "mb-3 mt-2",tags$img(src = "img/webster_photo.png", style = "width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #5D3FD3;")),
+                  div("College of Information and Computing", class = "fw-bold"),
+                  div("BS Computer Science Major in Data Science"),
+                  div("wmdisidor01202401034@usep.edu.ph", class = "small text-muted mt-1"),
+                  div("University of Southeastern Philippines, Obrero Campus", class = "small text-muted mt-2")
+                )
+              ),
+              
+
+              card(
+                class = "text-center shadow-sm p-0 border-0",
+                
+                div(class = "text-white p-4", style = "background-color: #db8282;",
+                    h5("Fe Aubrey Oledan", class = "fw-bold mb-0"),
+                    div("BSCS Student")
+                ),
+                
+                card_body(
+                  div(class = "mb-3 mt-2",tags$img(src = "img/baubbie_photo.png", style = "width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #db8282;")),
+                  div("College of Information and Computing", class = "fw-bold"),
+                  div("BS Computer Science Major in Data Science"),
+                  div("University of Southeastern Philippines, Obrero Campus", class = "small text-muted mt-2")
+                )
+              )
             )
   )
 )
@@ -182,7 +343,6 @@ server <- function(input, output, session) {
   
   output$box_avg_size <- renderText({ paste0(round(mean(clean_data$diameter_max_m, na.rm = TRUE), 1), " m") })
   
-  # 1. Bar Chart (Reactive Colors applied!)
   output$eda_bar_chart <- renderPlotly({
     plot_ly(clean_data, x = ~orbit_class_type, color = ~potentially_hazardous, 
             colors = c("#00e676", "#ff4d4d"), type = "histogram",
@@ -194,7 +354,6 @@ server <- function(input, output, session) {
              yaxis = list(title = "Asteroid Count", gridcolor = t_colors()$grid))
   })
   
-  # 2. Scatter Chart (Reactive Colors applied!)
   output$eda_scatter_chart <- renderPlotly({
     plot_ly(clean_data, x = ~min_orbit_intersection, y = ~diameter_max_m, 
             color = ~potentially_hazardous, colors = c("#00e676", "#ff4d4d"),
@@ -210,7 +369,6 @@ server <- function(input, output, session) {
              yaxis = list(title = "Max Diameter (m)", gridcolor = t_colors()$grid))
   })
 
-  # 3. Velocity Overlay (Reactive Colors applied!)
   output$eda_histogram <- renderPlotly({
     plot_ly(clean_data, x = ~mean_motion, color = ~potentially_hazardous, 
             colors = c("#00e676", "#ff4d4d"), type = "histogram", opacity = 0.7,
@@ -222,7 +380,6 @@ server <- function(input, output, session) {
              yaxis = list(title = "Frequency", gridcolor = t_colors()$grid))
   })
 
-  # 4. Statistical Boxplot (Reactive Colors applied!)
   output$eda_boxplot <- renderPlotly({
     plot_ly(clean_data, x = ~potentially_hazardous, y = ~magnitude, 
             color = ~potentially_hazardous, colors = c("#00e676", "#ff4d4d"), type = "box") |>
@@ -233,7 +390,6 @@ server <- function(input, output, session) {
              showlegend = FALSE)
   })
 
-  
   # ---------------------------------------------------------
   # SERVER: HAZARD SCANNER TAB
   # ---------------------------------------------------------
@@ -257,20 +413,20 @@ server <- function(input, output, session) {
     
     is_hazardous <- hazard_prob >= 50
     
-    # RENDER THE ALERT (Reactive Bootstrap alerts!)
+    # RENDER THE ALERT (CSS-Free via Bootstrap)
     output$threat_alert <- renderUI({
       if(is_hazardous) {
-        div(class = "alert alert-danger text-center shadow-sm", style = "padding: 20px; border-radius: 10px;",
-            div(style = "font-size: 32px; font-weight: bold;", "⚠️ HAZARDOUS OBJECT DETECTED"),
-            div(style = "font-size: 24px; margin-top: 10px;", paste("Threat Probability:", hazard_prob, "%")))
+        div(class = "alert alert-danger text-center shadow-sm p-4 rounded-3",
+            div(class = "fs-2 fw-bold", "⚠️ HAZARDOUS OBJECT DETECTED"),
+            div(class = "fs-4 mt-3", paste("Threat Probability:", hazard_prob, "%")))
       } else {
-        div(class = "alert alert-success text-center shadow-sm", style = "padding: 20px; border-radius: 10px;",
-            div(style = "font-size: 32px; font-weight: bold;", "✅ ORBIT CLEAR. NO THREAT."),
-            div(style = "font-size: 24px; margin-top: 10px;", paste("Threat Probability:", hazard_prob, "%")))
+        div(class = "alert alert-success text-center shadow-sm p-4 rounded-3",
+            div(class = "fs-2 fw-bold", "✅ ORBIT CLEAR. NO THREAT."),
+            div(class = "fs-4 mt-3", paste("Threat Probability:", hazard_prob, "%")))
       }
     })
 
-    # RENDER THE RADAR (Reactive Colors applied!)
+    # RENDER THE RADAR
     output$radar_plot <- renderPlotly({
       miss_dist <- as.numeric(input$min_orbit_intersection)
       diameter <- as.numeric(input$diameter_max_m)

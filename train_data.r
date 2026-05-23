@@ -25,4 +25,4 @@ print(conf_matrix)
 
 varImpPlot(rf_model, main = "Asteroid Feature Improtance")
 
-saveRDS(rf_model, "asteroid_rf_model.rds")
+#saveRDS(rf_model, "asteroid_rf_model.rds")
