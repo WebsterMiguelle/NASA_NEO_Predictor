@@ -1,6 +1,5 @@
 # ==========================================
-# 1. SETUP & LIBRARIES
-# ==========================================
+
 library(shiny)
 library(bslib)
 library(tidyverse)
@@ -9,27 +8,22 @@ library(plotly)
 library(bsicons) 
 addResourcePath(prefix = "img", directoryPath = "www")
 
-# Load Apraxia's Backend Files
 rf_model <- readRDS("asteroid_rf_model.rds")
 clean_data <- readRDS("clean_asteroids.rds")
 
-# ==========================================
-# 2. USER INTERFACE (UI)
-# ==========================================
 ui <- page_navbar(
   title = "NASA NEO Threat Assessment",
   fillable = FALSE,
-  # Allow the light/dark toggle to work
+  
   theme = bs_theme(), 
   
-  # INJECT THE TOGGLE
+ 
   nav_spacer(),
   nav_item(input_dark_mode(id = "dark_mode")),
   
-  # --- TAB 1: Global Database (The Big Picture) ---
+
   nav_panel("Global Database",
-            
-            # The Top Row: Summary Value Boxes
+
             layout_column_wrap(
               width = 1/3, 
               value_box(
@@ -51,8 +45,7 @@ ui <- page_navbar(
                 theme = "info" 
               )
             ),
-            
-            # The Bottom Grid: 4 Global Analytics Charts 
+
             layout_column_wrap(
               width = 1/2, 
               
@@ -78,11 +71,9 @@ ui <- page_navbar(
             )
   ),
   
-  # --- TAB 2: The Hazard Predictor ---
   nav_panel("Hazard Predictor",
             layout_sidebar(
-              
-              # THE SIDEBAR 
+
               sidebar = sidebar(
                 title = "Asteroid Parameters",
                 
@@ -130,7 +121,6 @@ ui <- page_navbar(
                 actionButton("scan_btn", "SCAN FOR THREAT", class = "btn btn-danger btn-lg w-100 fw-bold shadow")
               ),
               
-              # THE MAIN SCREEN
               card(
                 card_header("System Output"),
                 uiOutput("threat_alert") 
@@ -142,34 +132,26 @@ ui <- page_navbar(
             )
   ),
   
-  # --- TAB 3: Explanatory Tab ---
-  # --- TAB 3: Explanatory Tab ---
   nav_panel("About This", 
             
-            # 1. TOP SECTION: About the Project & Database Links (First thing they see)
             card(
               class = "shadow-sm mb-4 border-0",
               card_header("About This Project", class = "bg-primary text-white fw-bold fs-5"),
               card_body(
                 p(class = "lead", "INFORMATION GOES HERE ARN"),
                 
-                # The Single Link Button
                 div(
                   tags$a(href = "https://www.kaggle.com/datasets/itszubi/nasa-asteroid-tracker-dataset?resource=download", target = "_blank", class = "btn btn-primary fw-bold", 
                          bsicons::bs_icon("database"), " View Dataset")
                 )
               )
             ),
-            # 2. MIDDLE SECTION: Split Screen for Model Stats & Dictionary
             layout_columns(
               col_widths = c(4, 8), 
               
-              # LEFT COLUMN: Model Briefing
               layout_column_wrap(
                 width = 1,
-                
-                # --- MODEL PERFORMANCE KPI CARD ---
-                # --- MODEL PERFORMANCE KPI CARD (CSS-Free) ---
+
                 card(
                   class = "border-0 border-start border-danger border-5 shadow-sm",
                   card_header("Model Performance", class = "h4 fw-bold border-0 bg-transparent"),
@@ -217,7 +199,6 @@ Secondary features like **Maximum Diameter** and **Mean Motion** act as critical
                 )
               ),
               
-              # RIGHT COLUMN: Claiyax's Data Dictionary
               card(
                 card_header("Data Dictionary", class = "bg-info text-white"),
                 class = "overflow-auto h-100", 
@@ -256,7 +237,6 @@ Secondary features like **Maximum Diameter** and **Mean Motion** act as critical
               )
             ),
             
-            # 3. BOTTOM SECTION
             hr(class = "mt-5 mb-4 border-secondary"),
             
             div(class = "text-center mb-4",
@@ -319,12 +299,9 @@ Secondary features like **Maximum Diameter** and **Mean Motion** act as critical
   )
 )
 
-# ==========================================
-# 3. SERVER LOGIC (The Brains)
-# ==========================================
+
 server <- function(input, output, session) {
   
-  # --- DYNAMIC THEME DETECTOR ---
   t_colors <- reactive({
     if (is.null(input$dark_mode) || input$dark_mode == "dark") {
       list(text = "white", grid = "#444444")
