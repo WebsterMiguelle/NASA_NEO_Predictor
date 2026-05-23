@@ -74,7 +74,7 @@ theme = bs_theme(
               
               card(
                 card_header(style = "background-color: #F96E5B; color: white;", class = "fw-bold",
-                  tagList("Magnitude (Brightness) Analysis ", tooltip(bsicons::bs_icon("info-circle"), "In astronomy, a lower magnitude means a brighter object, which usually indicates a larger physical size. Notice how confirmed hazards skew towards lower (brighter) magnitudes."))), 
+                tagList("Magnitude (Brightness) Analysis ", tooltip(bsicons::bs_icon("info-circle"), "In astronomy, a lower magnitude means a brighter object, which usually indicates a larger physical size. Notice how confirmed hazards skew towards lower (brighter) magnitudes."))), 
                 plotlyOutput("eda_boxplot")
               )
             )
@@ -131,11 +131,14 @@ theme = bs_theme(
               ),
               
               card(
-                card_header("System Output"),
+                card_header(style = "background-color: #F96E5B; color: white;", class = "fw-bold",
+                tagList("System Output")),
                 uiOutput("threat_alert") 
+            
               ),
               card(
-                card_header("Orbital Radar"),
+                card_header(style = "background-color: #F96E5B; color: white;", class = "fw-bold",
+                tagList("Orbital Radar")),
                 plotlyOutput("radar_plot") 
               )
             )
