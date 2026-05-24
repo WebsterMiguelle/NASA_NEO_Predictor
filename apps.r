@@ -13,21 +13,23 @@ addResourcePath(prefix = "img", directoryPath = "www")
 rf_model <- readRDS("asteroid_rf_model.rds")
 clean_data <- readRDS("clean_asteroids.rds")
 
-ui <- page_navbar(
-  title = "☄️NASA NEO Threat Assessment",
-  fillable = FALSE,
-  
-theme = bs_theme(
-    bootswatch = "cerulean",
-    "navbar-bg" = "#0a3c91",   
-    "navbar-light-color" = "#ffffff"  
+ui <- page_fluid(
+
+  theme = bs_theme(bootswatch = "cerulean"),
+
+div(
+    class = "d-flex justify-content-between align-items-center p-3 text-white mb-4 shadow-sm rounded-bottom",
+    style = "background-color: #0a3c91;", 
+    h3("☄️NASA NEO Threat Assessment", class = "mb-0 fw-bold"),
+    input_dark_mode(id = "dark_mode")
   ),
  
-  nav_spacer(),
-  nav_item(input_dark_mode(id = "dark_mode")),
+navset_pill_list(
+widths = c(2, 10),
   
 
   nav_panel("Global Database",
+  icon = bsicons::bs_icon("globe"),
 
             layout_column_wrap(
               width = 1/3, 
@@ -81,10 +83,11 @@ theme = bs_theme(
   ),
   
   nav_panel("Hazard Predictor",
+  icon = bsicons::bs_icon("Exclamation triangle"),
             layout_sidebar(
 
               sidebar = sidebar(
-                title = "Asteroid Parameters",
+                title = "Asteroid Parameters", class = "mb-0 fw-bold",position = "right",
                 
                 accordion(
                   open = "Physical Traits", 
@@ -127,7 +130,9 @@ theme = bs_theme(
                 ),
                 
                 hr(), 
-                actionButton("scan_btn", "SCAN FOR THREAT", class = "btn btn-danger btn-lg w-100 fw-bold shadow")
+                actionButton("scan_btn", "SCAN FOR THREAT", 
+                class = "btn btn-lg w-100 fw-bold",
+                style = " background-image: none; background-color: #dc3545; border-color: #dc3545;  color: white;" )
               ),
               
               card(
@@ -145,14 +150,16 @@ theme = bs_theme(
   ),
   
   nav_panel("About This", 
+    icon = bsicons::bs_icon("Exclamation circle"),
             
             card(
               class = "shadow-sm mb-4 border-0",
               card_header("About This Project", class = "bg-primary text-white fw-bold fs-5"),
               card_body(
-                p(class = "lead", "INFORMATION GOES HERE ARN"),
+                p(class = "lead", "This dashboard serves as our learning evidence for CS 226: Data Analytics - Statistics Using R. This project utilized a dataset that analyzes near-earth objects (NEOs), specifically asteroids; it includes orbital parameters, size estimates, velocity measurements, and hazard classifications. With the use of machine learning, it examines an asteroid's physical and orbital traits to accurately predict whether it should be classified as a hazard. This interactive dashboard gives insights not only for planetary defense, but also for those with an interest in the fields of astronomy and space exploration."),
                 
                 div(
+                   markdown("NASA Asteroid Tracker Dataset"),
                   tags$a(href = "https://www.kaggle.com/datasets/itszubi/nasa-asteroid-tracker-dataset?resource=download", target = "_blank", class = "btn btn-primary fw-bold", 
                          bsicons::bs_icon("database"), " View Dataset")
                 )
@@ -195,8 +202,9 @@ theme = bs_theme(
                       strong("Specificity:", class = "text-body"), " True negative rate", br(),
                       br(),
                       "Based on 5-fold cross-validation of the training data"
-                    )
-                  )
+                      )
+                   )
+                 )
                 ),
                 
                 card(
@@ -246,69 +254,81 @@ Secondary features like **Maximum Diameter** and **Mean Motion** act as critical
 * **observation_used**: How many times the asteroid was observed.
 * **orbit_uncertainty**: The quantification of doubt regarding an object's exact location and trajectory.
                 ")
-              )
-            ),
-            
-            hr(class = "mt-5 mb-4 border-secondary"),
-            
-            div(class = "text-center mb-4",
-                h3("Project Makers", class = "fw-bold"),
-            ),
-            
-            layout_column_wrap(
-              width = 1/3,
-              
-              card(
-                class = "text-center shadow-sm p-0 border-0",
-                
-                div(class = "text-white p-4", style = "background-color: #800020;",
-                    h5("Arndria Basco", class = "fw-bold mb-0"),
-                    div("BSCS Student")
-                ),
-                
-                card_body(
-                  div(class = "mb-3 mt-2",tags$img(src = "img/arn_photo.png", style = "width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #800020;")),
-                  div("College of Information and Computing", class = "fw-bold"),
-                  div("BS Computer Science Major in Data Science"),
-                  div("University of Southeastern Philippines, Obrero Campus", class = "small text-muted mt-2")
-                )
               ),
+                
+               hr(class = "mt-5 mb-4 border-secondary"),
+            
+            card(
+              class = "shadow-sm border-0",
+              card_header("Project Makers", class = "bg-info text-white fw-bold fs-5 text-center"),
+              card_body(
+                layout_column_wrap(
+                  width = 1/3,
+                
+               card(
+                    class = "text-center shadow-sm p-0 border-0",
+                    div(class = "text-white p-4", style = "background-color: #800020;",
+                        h5("Arndria Basco", class = "text-white fw-bold mb-0"),
+                        div("BSCS Student")
+                    ),
+                    card_body(
+                      div(class = "mb-3 mt-2", tags$img(src = "img/arn_photo.png", style = "width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #800020;")),
+                      div("College of Information and Computing", class = "fw-bold"),
+                      div("BS Computer Science Major in Data Science"),
+                      div("University of Southeastern Philippines, Obrero Campus", class = "small text-muted mt-2"),
+                      div("aabasco01202401028@usep.edu.ph", class = "small text-muted mt-1"),
+
+                      div(class = "mt-1",
+                          tags$a(href = "https://github.com/Drea-rya", target = "_blank", class = "text-decoration-none fw-bold", style = "color: #800020;",
+                                 bsicons::bs_icon("github", size = "2rem"))
+                      )
+                    )
+                  ),
 
               card(
-                class = "text-center shadow-sm p-0 border-0", 
-                
-                div(class = "text-white p-4", style = "background-color: #5D3FD3;",
-                    h5("Webster Miguelle D. Isidor", class = "fw-bold mb-0"),
-                    div("BSCS Student")
-                ),
-                
-                card_body(
-                  div(class = "mb-3 mt-2",tags$img(src = "img/webster_photo.png", style = "width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #5D3FD3;")),
-                  div("College of Information and Computing", class = "fw-bold"),
-                  div("BS Computer Science Major in Data Science"),
-                  div("wmdisidor01202401034@usep.edu.ph", class = "small text-muted mt-1"),
-                  div("University of Southeastern Philippines, Obrero Campus", class = "small text-muted mt-2")
-                )
-              ),
-              
+                    class = "text-center shadow-sm p-0 border-0", 
+                    div(class = "text-white p-4", style = "background-color: #5D3FD3;",
+                        h5("Webster Miguelle D. Isidor", class = "text-white fw-bold mb-0"),
+                        div("BSCS Student")
+                    ),
+                    card_body(
+                      div(class = "mb-3 mt-2", tags$img(src = "img/webster_photo.png", style = "width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #5D3FD3;")),
+                      div("College of Information and Computing", class = "fw-bold"),
+                      div("BS Computer Science Major in Data Science"),
+                      div("University of Southeastern Philippines, Obrero Campus", class = "small text-muted mt-2"),
+                      div("wmdisidor01202401034@usep.edu.ph", class = "small text-muted mt-1"),
+                     div(class = "mt-1",
+                          tags$a(href = "https://github.com/WebsterMiguelle", target = "_blank", class = "text-decoration-none fw-bold", style = "color: #5D3FD3;",
+                                 bsicons::bs_icon("github", size = "2rem"))
+                      )
+                    )
+                  ),
 
               card(
-                class = "text-center shadow-sm p-0 border-0",
-                
-                div(class = "text-white p-4", style = "background-color: #db8282;",
-                    h5("Fe Aubrey Oledan", class = "fw-bold mb-0"),
-                    div("BSCS Student")
-                ),
-                
-                card_body(
-                  div(class = "mb-3 mt-2",tags$img(src = "img/baubbie_photo.png", style = "width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #db8282;")),
-                  div("College of Information and Computing", class = "fw-bold"),
-                  div("BS Computer Science Major in Data Science"),
-                  div("University of Southeastern Philippines, Obrero Campus", class = "small text-muted mt-2")
+                    class = "text-center shadow-sm p-0 border-0",
+                    div(class = "text-white p-4", style = "background-color: #db8282;",
+                        h5("Fe Aubrey Oledan", class = "text-white fw-bold mb-0"),
+                        div("BSCS Student")
+                    ),
+                    card_body(
+                      div(class = "mb-3 mt-2", tags$img(src = "img/baubbie_photo.png", style = "width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #db8282;")),
+                      div("College of Information and Computing", class = "fw-bold"),
+                      div("BS Computer Science Major in Data Science"),
+                      div("University of Southeastern Philippines, Obrero Campus", class = "small text-muted mt-2"),
+                      div("faooledan01202400408@usep.edu.ph", class = "small text-muted mt-1"),
+                     div(class = "mt-1",
+                          tags$a(href = "https://github.com/claiyax", target = "_blank", class = "text-decoration-none fw-bold", style = "color:#db8282;",
+                                 bsicons::bs_icon("github", size = "2rem"))
+                      )
+                    )
+                  )
                 )
               )
             )
-  )
+            ),
+            
+           
+  ) 
 )
 
 
